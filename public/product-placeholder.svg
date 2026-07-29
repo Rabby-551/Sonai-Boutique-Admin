@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="800" viewBox="0 0 640 800" role="img" aria-labelledby="title desc">
+  <title id="title">Shonai product placeholder</title>
+  <desc id="desc">Cream textile-inspired placeholder for a product image</desc>
+  <rect width="640" height="800" fill="#f1ede5"/>
+  <path d="M0 550C120 480 180 620 320 540s220-20 320-100v360H0Z" fill="#c4a574" opacity=".35"/>
+  <circle cx="320" cy="315" r="126" fill="none" stroke="#8b6f47" stroke-width="3" opacity=".5"/>
+  <text x="320" y="330" text-anchor="middle" fill="#2c2c2c" font-family="Georgia,serif" font-size="62">S</text>
+</svg>
