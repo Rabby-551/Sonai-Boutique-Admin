@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { AttentionQueue } from "@/features/dashboard/components/attention-queue";
+import { DashboardBrandBanner } from "@/features/dashboard/components/dashboard-brand-banner";
 import { DashboardFilters } from "@/features/dashboard/components/dashboard-filters";
 import { FulfillmentSummary } from "@/features/dashboard/components/fulfillment-summary";
 import { KpiGrid } from "@/features/dashboard/components/kpi-grid";
@@ -10,6 +11,7 @@ import { dashboardQuerySchema } from "@/features/dashboard/schemas/dashboard-sch
 
 export const dynamic = "force-dynamic";
 type Search = Record<string, string | string[] | undefined>;
+
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -23,15 +25,16 @@ export default async function DashboardPage({
   });
   const summary = await getDashboardSummary(query);
   return (
-    <>
+    <div className="dashboard-page">
       <PageHeader
         eyebrow="Business intelligence · FR-182"
         title="Operations overview"
         description={summary.summary}
       />
+      <DashboardBrandBanner />
       <DashboardFilters query={query} />
       <KpiGrid summary={summary} />
-      <div className="grid-2">
+      <div className="grid-2 dashboard-primary-grid">
         <RevenueChart summary={summary} />
         <AttentionQueue alerts={summary.alerts} />
       </div>
@@ -56,6 +59,6 @@ export default async function DashboardPage({
         </section>
       </div>
       <RecentOrders orders={summary.recentOrders} />
-    </>
+    </div>
   );
 }

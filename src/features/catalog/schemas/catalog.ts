@@ -23,6 +23,9 @@ export const productVariantSchema = z.object({
   barcode: z.string().trim().min(3).max(60),
   active: z.boolean(),
 });
+export const productVariantMutationSchema = productVariantSchema.omit({
+  stock: true,
+});
 
 export const productSchema = z.object({
   id: z.string().min(1),
@@ -64,8 +67,12 @@ export const productMutationSchema = productSchema
     version: true,
     createdAt: true,
     updatedAt: true,
+    variants: true,
   })
-  .extend({ version: z.number().int().positive().optional() })
+  .extend({
+    version: z.number().int().positive().optional(),
+    variants: z.array(productVariantMutationSchema).min(1),
+  })
   .superRefine((value, context) => {
     if (value.costMinor > value.priceMinor) {
       context.addIssue({
@@ -102,6 +109,9 @@ export const categoryMutationSchema = categorySchema
 
 export type Product = z.infer<typeof productSchema>;
 export type ProductVariant = z.infer<typeof productVariantSchema>;
+export type ProductVariantMutation = z.infer<
+  typeof productVariantMutationSchema
+>;
 export type ProductImage = z.infer<typeof productImageSchema>;
 export type Category = z.infer<typeof categorySchema>;
 export type CatalogStore = z.infer<typeof catalogStoreSchema>;

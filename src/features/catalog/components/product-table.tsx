@@ -29,7 +29,7 @@ export function ProductTable({
     );
   return (
     <section className="card table-card">
-      <div className="table-scroll">
+      <div className="table-scroll responsive-record-table">
         <table>
           <thead>
             <tr>
@@ -52,18 +52,20 @@ export function ProductTable({
               );
               return (
                 <tr key={product.id}>
-                  <td>
-                    <strong>{product.name}</strong>
-                    <div className="metric-label">
-                      {product.variants.map((item) => item.sku).join(", ")}
-                    </div>
+                  <td data-label="Product">
+                    <span className="record-primary">
+                      <strong>{product.name}</strong>
+                      <span className="metric-label">
+                        {product.variants.map((item) => item.sku).join(", ")}
+                      </span>
+                    </span>
                   </td>
-                  <td>
+                  <td data-label="Category">
                     {categoryNames.get(product.categoryId) ?? "Uncategorized"}
                   </td>
-                  <td>{formatMoney(product.priceMinor)}</td>
-                  <td>{product.variants.length}</td>
-                  <td>
+                  <td data-label="Price">{formatMoney(product.priceMinor)}</td>
+                  <td data-label="Variants">{product.variants.length}</td>
+                  <td data-label="Stock">
                     {stock}{" "}
                     {stock === 0 ? (
                       <StatusBadge status="Out of stock" />
@@ -71,10 +73,10 @@ export function ProductTable({
                       <StatusBadge status="Low stock" />
                     ) : null}
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <StatusBadge status={product.status} />
                   </td>
-                  <td>
+                  <td data-label="Actions">
                     <Link
                       className="button secondary"
                       href={`/products/${product.id}`}

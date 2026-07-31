@@ -110,7 +110,7 @@ export function ImageEditor({
         </div>
       ) : (
         <div className="empty-inline">
-          No images selected. The catalog remains usable with the Shonai
+          No images selected. The catalog remains usable with the Sonai
           placeholder.
         </div>
       )}

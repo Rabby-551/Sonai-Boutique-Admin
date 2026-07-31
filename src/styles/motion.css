@@ -1,0 +1,74 @@
+.page-transition {
+  min-width: 0;
+}
+
+.motion-stagger > * {
+  animation: premium-reveal var(--motion-page) var(--ease-out-premium) both;
+}
+
+.motion-stagger > :nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.motion-stagger > :nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.motion-stagger > :nth-child(4) {
+  animation-delay: 135ms;
+}
+
+.motion-stagger > :nth-child(5) {
+  animation-delay: 180ms;
+}
+
+.motion-stagger > :nth-child(6) {
+  animation-delay: 225ms;
+}
+
+@keyframes premium-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #eeeae2;
+}
+
+.skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(
+    100deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.72) 45%,
+    transparent 75%
+  );
+  transform: translateX(-100%);
+  animation: skeleton-sheen 1.45s ease-in-out infinite;
+}
+
+@keyframes skeleton-sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-stagger > * {
+    animation: none;
+  }
+
+  .skeleton::after {
+    animation: none;
+  }
+}

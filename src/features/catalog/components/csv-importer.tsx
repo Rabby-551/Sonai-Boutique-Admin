@@ -15,19 +15,29 @@ export function CsvImporter({
     initialCatalogActionState,
   );
   const [text, setText] = useState("");
+  const [fileError, setFileError] = useState("");
   const preview = useMemo(
     () => (text ? parseCatalogCsv(text, existingSkus) : null),
     [existingSkus, text],
   );
   const validRows =
     preview?.rows.flatMap((row) => (row.value ? [row.value] : [])) ?? [];
-  const readFile = async (file?: File) => {
+  const readFile = (file?: File) => {
     if (!file) return;
     if (file.size > 5_000_000) {
       setText("");
+      setFileError("Choose a CSV file smaller than 5 MB.");
       return;
     }
-    setText(await file.text());
+    setFileError("");
+    const reader = new FileReader();
+    reader.onload = () =>
+      setText(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () => {
+      setText("");
+      setFileError("The CSV file could not be read. Choose it again.");
+    };
+    reader.readAsText(file, "utf-8");
   };
   return (
     <>
@@ -40,6 +50,17 @@ export function CsvImporter({
               Required headers: name, sku, category, price, cost, color, size,
               stock, status.
             </p>
+            <label className="field" htmlFor="csv-text">
+              <span>Paste CSV contents (fallback)</span>
+              <textarea
+                className="textarea"
+                id="csv-text"
+                onChange={(event) => setText(event.target.value)}
+                placeholder="Paste the CSV header and rows here"
+                rows={4}
+                value={text}
+              />
+            </label>
           </div>
           <label className="button">
             <FileUp size={17} />
@@ -47,12 +68,17 @@ export function CsvImporter({
             <input
               accept=".csv,text/csv"
               hidden
-              onChange={(event) => readFile(event.target.files?.[0])}
+              onInput={(event) => readFile(event.currentTarget.files?.[0])}
               type="file"
             />
           </label>
         </div>
       </section>
+      {fileError && (
+        <div className="form-message error" role="alert">
+          {fileError}
+        </div>
+      )}
       {preview && (
         <form
           action={action}

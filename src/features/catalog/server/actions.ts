@@ -5,7 +5,7 @@ import {
   categoryMutationSchema,
   productImageSchema,
   productMutationSchema,
-  productVariantSchema,
+  productVariantMutationSchema,
 } from "../schemas/catalog";
 import { getCatalogRepository } from "../data/repository-factory";
 import { CatalogError } from "../data/catalog-errors";
@@ -76,7 +76,9 @@ export async function saveProductAction(
       version: text(form, "version")
         ? Number(text(form, "version"))
         : undefined,
-      variants: z.array(productVariantSchema).parse(json(form, "variants", [])),
+      variants: z
+        .array(productVariantMutationSchema)
+        .parse(json(form, "variants", [])),
       images: z.array(productImageSchema).parse(json(form, "images", [])),
     });
     const repository = getCatalogRepository();

@@ -12,8 +12,8 @@ export function DashboardFilters({ query }: { query: DashboardQuery }) {
           name="branch"
         >
           <option value="all">All locations</option>
-          <option value="banani">Banani</option>
-          <option value="dhanmondi">Dhanmondi</option>
+          <option value="rupnagar">Rupnagar</option>
+          <option value="mirpur-2">Mirpur 2</option>
           <option value="online">Online</option>
         </select>
       </div>

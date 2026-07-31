@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const dashboardQuerySchema = z.object({
-  branch: z.enum(["all", "banani", "dhanmondi", "online"]).default("all"),
+  branch: z.enum(["all", "rupnagar", "mirpur-2", "online"]).default("all"),
   channel: z.enum(["all", "branch", "online"]).default("all"),
   range: z.enum(["7d", "30d", "90d"]).default("30d"),
 });

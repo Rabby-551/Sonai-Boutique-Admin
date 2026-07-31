@@ -89,20 +89,6 @@ export function VariantEditor({
               />
             </div>
             <div className="field compact">
-              <label htmlFor={`stock-${index}`}>Stock</label>
-              <input
-                className="input"
-                id={`stock-${index}`}
-                min="0"
-                required
-                type="number"
-                value={variant.stock}
-                onChange={(event) =>
-                  update(index, "stock", Number(event.target.value))
-                }
-              />
-            </div>
-            <div className="field compact">
               <label htmlFor={`variant-price-${index}`}>Price override</label>
               <input
                 className="input"

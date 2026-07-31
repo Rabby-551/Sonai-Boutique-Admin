@@ -3,11 +3,13 @@ import Link from "next/link";
 export function Pagination({
   page,
   totalPages,
-  searchParams,
+  searchParams = {},
+  pathname = "/products",
 }: {
   page: number;
   totalPages: number;
-  searchParams: Record<string, string | undefined>;
+  searchParams?: Record<string, string | undefined>;
+  pathname?: string;
 }) {
   if (totalPages <= 1) return null;
   const href = (next: number) => {
@@ -17,7 +19,7 @@ export function Pagination({
       ),
     );
     params.set("page", String(next));
-    return `/products?${params}`;
+    return `${pathname}?${params}`;
   };
   return (
     <nav className="pagination" aria-label="Product pages">

@@ -13,4 +13,29 @@ describe("role permissions", () => {
     expect(can("cashier", "catalog.manage")).toBe(false);
     expect(can("manager", "catalog.manage")).toBe(true);
   });
+  it("enforces Phase 3 operating and approval boundaries", () => {
+    expect(can("manager", "inventory.approve")).toBe(true);
+    expect(can("cashier", "inventory.count")).toBe(true);
+    expect(can("cashier", "inventory.adjust")).toBe(false);
+    expect(can("cashier", "orders.cancel")).toBe(false);
+    expect(can("support", "orders.note")).toBe(true);
+    expect(can("support", "orders.fulfill")).toBe(false);
+  });
+  it("enforces Phase 4 relationship and procurement boundaries", () => {
+    expect(can("owner", "loyalty.configure")).toBe(true);
+    expect(can("manager", "loyalty.configure")).toBe(false);
+    expect(can("manager", "procurement.approve")).toBe(true);
+    expect(can("cashier", "complaints.create")).toBe(true);
+    expect(can("cashier", "procurement.view")).toBe(false);
+    expect(can("support", "complaints.manage")).toBe(true);
+    expect(can("support", "loyalty.adjust")).toBe(false);
+  });
+  it("enforces Phase 5 payroll and administration boundaries", () => {
+    expect(can("owner", "payroll.approve")).toBe(true);
+    expect(can("manager", "payroll.manage")).toBe(true);
+    expect(can("manager", "payroll.approve")).toBe(false);
+    expect(can("manager", "roles.manage")).toBe(false);
+    expect(can("cashier", "attendance.view")).toBe(true);
+    expect(can("support", "reports.view")).toBe(false);
+  });
 });

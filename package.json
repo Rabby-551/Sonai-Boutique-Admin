@@ -1,5 +1,5 @@
 {
-  "name": "shonai-admin-panel",
+  "name": "sonai-admin-panel",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,14 +10,28 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e:prepare": "node scripts/reset-e2e-data.mjs",
     "test:e2e": "playwright test",
-    "format:check": "prettier --check ."
+    "preview:init": "node scripts/preview-init.mjs --reset",
+    "preview:verify": "node scripts/preview-verify.mjs",
+    "preview:package": "node scripts/preview-package.mjs",
+    "preview:smoke": "node scripts/preview-smoke.mjs",
+    "format:check": "prettier --check .",
+    "check:utf8": "node scripts/check-utf8.mjs",
+    "check:size": "node scripts/check-source-size.mjs",
+    "verify:env": "node scripts/verify-env.mjs",
+    "quality": "npm run verify:env && npm run check:utf8 && npm run check:size && npm run format:check && npm run lint && npm run typecheck && npm test",
+    "quality:release": "npm run quality && npm run build",
+    "quality:preview": "npm run quality:release && npm run preview:package && npm run preview:smoke"
   },
   "dependencies": {
     "@hookform/resolvers": "5.5.7",
+    "@supabase/ssr": "0.12.4",
+    "@supabase/supabase-js": "2.111.0",
     "@types/bwip-js": "^3.2.3",
     "bwip-js": "^4.11.2",
     "lucide-react": "1.27.0",
+    "motion": "^12.43.0",
     "next": "16.2.12",
     "react": "19.2.8",
     "react-dom": "19.2.8",

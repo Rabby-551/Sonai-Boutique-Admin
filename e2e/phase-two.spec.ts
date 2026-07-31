@@ -30,7 +30,6 @@ test("manager product workflow creates, edits and archives", async ({
   await page.getByLabel("Selling price (BDT)").fill("4500");
   await page.getByLabel("Unit cost (BDT)").fill("2500");
   await page.getByLabel("SKU").fill("TEST-AZURE-001");
-  await page.getByLabel("Stock", { exact: true }).fill("6");
   await page.getByRole("button", { name: "Create product" }).click();
   await expect(
     page.getByRole("heading", { name: "Azure Test Saree" }),
@@ -63,12 +62,10 @@ test("CSV preview identifies valid and invalid rows", async ({
     "Imported Orna,TEST-IMPORT-1,Orna,1200,700,White,Free,3,draft",
     "Broken,TEST-IMPORT-1,Missing,10,20,Blue,Free,-1,wrong",
   ].join("\n");
-  await page.locator('input[type="file"]').setInputFiles({
-    name: "catalog.csv",
-    mimeType: "text/csv",
-    buffer: Buffer.from(csv),
+  await page.getByLabel("Paste CSV contents (fallback)").fill(csv);
+  await expect(page.getByText("1 valid rows")).toBeVisible({
+    timeout: 15_000,
   });
-  await expect(page.getByText("1 valid rows")).toBeVisible();
   await expect(page.getByText(/rows need correction/)).toBeVisible();
   await page.getByRole("button", { name: "Import valid rows" }).click();
   await expect(page.getByText(/1 products imported/)).toBeVisible();

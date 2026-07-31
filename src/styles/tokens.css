@@ -1,0 +1,132 @@
+@font-face {
+  font-family: "Sonai Sans";
+  src: url("/fonts/manrope-400.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sonai Sans";
+  src: url("/fonts/manrope-600.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sonai Display";
+  src: url("/fonts/cormorant-garamond-500.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sonai Display";
+  src: url("/fonts/cormorant-garamond-600.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+
+  --background: #f7f2e8;
+  --background-subtle: #efe7db;
+  --surface: #fffdf8;
+  --surface-muted: #fbf7ef;
+  --surface-elevated: #fffdf8;
+  --foreground: #25211f;
+  --foreground-muted: #706862;
+  --border: #d8cfc2;
+  --border-strong: #c5b7a6;
+  --primary: #741d33;
+  --primary-hover: #45101e;
+  --accent: #b58a47;
+  --accent-strong: #741d33;
+  --focus-ring: #8b3c50;
+  --success: #39715e;
+  --warning: #91681f;
+  --destructive: #a8463f;
+  --information: #4f7c80;
+  --sidebar: #45101e;
+  --sidebar-muted: #d8c9c4;
+  --sidebar-active: #fff4ea;
+
+  --font-ui:
+    "Sonai Sans", "DM Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-display:
+    "Sonai Display", "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-feature: 16px;
+  --radius-sm: var(--radius-control);
+  --radius-md: var(--radius-card);
+  --radius-lg: var(--radius-feature);
+  --shadow-card: 0 10px 28px rgba(69, 16, 30, 0.055);
+  --shadow-elevated: 0 18px 48px rgba(69, 16, 30, 0.12);
+  --shadow-lg: var(--shadow-elevated);
+
+  --z-sidebar: 30;
+  --z-sticky: 20;
+  --z-popover: 40;
+
+  --motion-immediate: 90ms;
+  --motion-fast: 160ms;
+  --motion-standard: 220ms;
+  --motion-page: 300ms;
+  --motion-drawer: 280ms;
+  --motion-chart: 600ms;
+  --ease-out-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: var(--ease-out-premium);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Legacy aliases remain while feature CSS migrates. */
+  --cream: var(--background);
+  --paper: var(--surface);
+  --charcoal: var(--foreground);
+  --muted: var(--foreground-muted);
+  --line: var(--border);
+  --gold: var(--accent);
+  --teal: var(--focus-ring);
+  --brown: var(--accent-strong);
+  --danger: var(--destructive);
+  --shadow: var(--shadow-card);
+}
+
+html {
+  max-width: 100%;
+  overflow-x: clip;
+  background: var(--background-subtle);
+}
+
+body {
+  min-width: 320px;
+  max-width: 100%;
+  overflow-x: clip;
+  background: var(--background-subtle);
+  color: var(--foreground);
+  font-family: var(--font-ui);
+  font-feature-settings: "kern", "liga", "tnum";
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: rgba(181, 138, 71, 0.35);
+}

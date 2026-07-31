@@ -1,0 +1,91 @@
+import { expect, test } from "@playwright/test";
+
+const routes = [
+  "/dashboard",
+  "/products",
+  "/products/prd-batik-silk",
+  "/products/prd-batik-silk/edit",
+  "/products/new",
+  "/products/import",
+  "/products/barcodes",
+  "/categories",
+  "/inventory",
+  "/inventory/var-sh-sar-1048-br",
+  "/inventory/reorder-suggestions",
+  "/inventory/transfers",
+  "/inventory/transfers/new",
+  "/inventory/transfers/missing-transfer",
+  "/stock-movements",
+  "/stock-movements/new",
+  "/stock-counts",
+  "/stock-counts/new",
+  "/stock-counts/missing-count",
+  "/orders",
+  "/orders/new",
+  "/orders/ord-captured-001",
+  "/customers",
+  "/customers/new",
+  "/customers/cus-1700000001",
+  "/customers/cus-1700000001/edit",
+  "/customers/loyalty-settings",
+  "/customers/segments",
+  "/customers/privacy-requests",
+  "/loyalty/rewards",
+  "/complaints",
+  "/complaints/new",
+  "/complaints/missing-complaint",
+  "/complaints/sla-policies",
+  "/suppliers",
+  "/suppliers/new",
+  "/suppliers/sup-demo-001",
+  "/suppliers/sup-demo-001/edit",
+  "/purchase-orders",
+  "/purchase-orders/new",
+  "/purchase-orders/missing-po",
+  "/purchase-orders/missing-po/receive",
+  "/campaigns",
+  "/campaigns/new",
+  "/campaigns/cmp-demo-001",
+  "/reports",
+  "/reports/schedules",
+  "/insights",
+  "/finance/reconciliation",
+  "/staff",
+  "/staff/new",
+  "/staff/stf-owner-01",
+  "/attendance",
+  "/attendance/leave",
+  "/payroll",
+  "/payroll/new",
+  "/payroll/missing-payroll",
+  "/users",
+  "/users/new",
+  "/roles",
+  "/audit-log",
+  "/settings",
+  "/settings/localization",
+  "/platform",
+  "/platform/migrations",
+  "/platform/release-readiness",
+  "/channels",
+  "/automation/rules",
+  "/demo",
+  "/demo/acceptance",
+  "/demo/release",
+] as const;
+
+test("all 71 registered admin routes render without server failure", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium",
+    "The full route registry is traversed once; responsive archetypes run separately.",
+  );
+  test.setTimeout(240_000);
+  expect(routes).toHaveLength(71);
+  for (const route of routes) {
+    const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+    expect(response?.status(), route).toBeLessThan(500);
+    await expect(page.locator("#main-content")).toBeVisible();
+  }
+});

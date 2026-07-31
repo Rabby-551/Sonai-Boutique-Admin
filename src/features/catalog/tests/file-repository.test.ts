@@ -43,7 +43,6 @@ describe("file catalog repository", () => {
           color: "Blue",
           size: "Free",
           priceMinor: null,
-          stock: 3,
           barcode: "TEST001",
           active: true,
         },
@@ -52,7 +51,7 @@ describe("file catalog repository", () => {
     const second = new FileCatalogRepository(new CatalogFileStore(directory));
     expect((await second.getProduct(created.id))?.name).toBe("Test Product");
     expect(
-      JSON.parse(await readFile(path.join(directory, "catalog.json"), "utf8")),
+      JSON.parse(await readFile(path.join(directory, "shonai.json"), "utf8")),
     ).toBeTruthy();
   });
   it("rejects stale versions", async () => {

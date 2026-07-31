@@ -24,7 +24,7 @@ export const modules: Record<string, ModuleDefinition> = {
     description:
       "Compare branch, online and consolidated stock while surfacing risk before it becomes a missed sale.",
     action: "Adjust stock",
-    permission: "inventory.manage",
+    permission: "inventory.view",
     requirements: ["FR-140", "FR-142", "FR-144", "FR-145"],
     metrics: [
       { label: "Stock units", value: "6,842", note: "Across 3 channels" },
@@ -39,8 +39,8 @@ export const modules: Record<string, ModuleDefinition> = {
     columns: [
       { key: "id", label: "SKU" },
       { key: "name", label: "Product" },
-      { key: "banani", label: "Banani" },
-      { key: "dhanmondi", label: "Dhanmondi" },
+      { key: "rupnagar", label: "Rupnagar" },
+      { key: "mirpur-2", label: "Mirpur 2" },
       { key: "online", label: "Online" },
       { key: "total", label: "Total" },
       { key: "status", label: "Status" },
@@ -49,8 +49,8 @@ export const modules: Record<string, ModuleDefinition> = {
       {
         id: "SH-SAR-1048",
         name: "Batik Silk Saree",
-        banani: 8,
-        dhanmondi: 5,
+        rupnagar: 8,
+        "mirpur-2": 5,
         online: 14,
         total: 27,
         status: "Healthy",
@@ -58,8 +58,8 @@ export const modules: Record<string, ModuleDefinition> = {
       {
         id: "SH-3PC-0281",
         name: "Ivory Three Piece",
-        banani: 4,
-        dhanmondi: 2,
+        rupnagar: 4,
+        "mirpur-2": 2,
         online: 7,
         total: 13,
         status: "Healthy",
@@ -67,8 +67,8 @@ export const modules: Record<string, ModuleDefinition> = {
       {
         id: "SH-SHL-0097",
         name: "Handloom Shawl",
-        banani: 1,
-        dhanmondi: 0,
+        rupnagar: 1,
+        "mirpur-2": 0,
         online: 1,
         total: 2,
         status: "Critical",
@@ -76,8 +76,8 @@ export const modules: Record<string, ModuleDefinition> = {
       {
         id: "SH-ORN-0143",
         name: "Jamdani Orna",
-        banani: 3,
-        dhanmondi: 2,
+        rupnagar: 3,
+        "mirpur-2": 2,
         online: 0,
         total: 5,
         status: "Low stock",
@@ -91,7 +91,7 @@ export const modules: Record<string, ModuleDefinition> = {
     description:
       "Trace every receipt, sale, transfer and adjustment to a person, location and business reason.",
     action: "New movement",
-    permission: "inventory.manage",
+    permission: "inventory.view",
     requirements: ["FR-146", "FR-147", "FR-150"],
     metrics: commonMetrics("1,284", "4"),
     columns: [
@@ -109,7 +109,7 @@ export const modules: Record<string, ModuleDefinition> = {
         type: "PO receipt",
         sku: "SH-SAR-1048",
         quantity: "+12",
-        location: "Banani",
+        location: "Rupnagar",
         actor: "Ayesha",
         status: "Received",
       },
@@ -127,7 +127,7 @@ export const modules: Record<string, ModuleDefinition> = {
         type: "Transfer",
         sku: "SH-ORN-0143",
         quantity: "−2 / +2",
-        location: "Banani → Dhanmondi",
+        location: "Rupnagar → Mirpur 2",
         actor: "Rafi",
         status: "In transit",
       },
@@ -136,7 +136,7 @@ export const modules: Record<string, ModuleDefinition> = {
         type: "Damage",
         sku: "SH-SHL-0097",
         quantity: "−1",
-        location: "Dhanmondi",
+        location: "Mirpur 2",
         actor: "Maliha",
         status: "Approved",
       },
@@ -149,7 +149,7 @@ export const modules: Record<string, ModuleDefinition> = {
     description:
       "Plan branch counts, record observed quantities and resolve variances with a durable audit trail.",
     action: "Start count",
-    permission: "inventory.manage",
+    permission: "inventory.count",
     requirements: ["FR-151"],
     metrics: commonMetrics("14", "2"),
     columns: [
@@ -164,7 +164,7 @@ export const modules: Record<string, ModuleDefinition> = {
     rows: [
       {
         id: "CNT-2026-014",
-        location: "Banani",
+        location: "Rupnagar",
         scheduled: "31 Jul 2026",
         scope: "Sarees",
         variance: "—",
@@ -173,7 +173,7 @@ export const modules: Record<string, ModuleDefinition> = {
       },
       {
         id: "CNT-2026-013",
-        location: "Dhanmondi",
+        location: "Mirpur 2",
         scheduled: "28 Jul 2026",
         scope: "Full branch",
         variance: "−3 units",
@@ -198,7 +198,7 @@ export const modules: Record<string, ModuleDefinition> = {
     description:
       "Capture, validate and fulfill online, branch and message-based orders without losing operational context.",
     action: "Create order",
-    permission: "orders.manage",
+    permission: "orders.view",
     requirements: ["FR-166", "FR-168", "FR-170", "FR-172", "FR-175"],
     metrics: [
       { label: "Orders today", value: "46", note: "৳4.82L gross value" },
@@ -233,7 +233,7 @@ export const modules: Record<string, ModuleDefinition> = {
         id: "SH-260729-1841",
         customer: "Tanzim Rahman",
         channel: "WhatsApp",
-        location: "Banani",
+        location: "Rupnagar",
         total: "৳9,800",
         payment: "COD",
         status: "Confirmed",
@@ -242,7 +242,7 @@ export const modules: Record<string, ModuleDefinition> = {
         id: "SH-260729-1840",
         customer: "Rumana Kabir",
         channel: "Branch",
-        location: "Dhanmondi",
+        location: "Mirpur 2",
         total: "৳5,600",
         payment: "Paid",
         status: "Delivered",
@@ -363,7 +363,7 @@ export const modules: Record<string, ModuleDefinition> = {
     description:
       "Keep supplier contacts, supplied categories, terms and purchasing history in one reliable directory.",
     action: "Add supplier",
-    permission: "procurement.manage",
+    permission: "procurement.view",
     requirements: ["FR-156", "FR-157", "FR-158", "FR-159"],
     metrics: commonMetrics("28", "3"),
     columns: [
@@ -412,7 +412,7 @@ export const modules: Record<string, ModuleDefinition> = {
     description:
       "Control purchasing from draft and approval through supplier confirmation, transit and receiving.",
     action: "Create PO",
-    permission: "procurement.manage",
+    permission: "procurement.view",
     requirements: ["FR-161", "FR-162", "FR-163", "FR-164"],
     metrics: commonMetrics("86", "9"),
     columns: [
@@ -594,7 +594,7 @@ export const modules: Record<string, ModuleDefinition> = {
         id: "STF-021",
         name: "Rafi Hasan",
         role: "Manager",
-        branch: "Banani",
+        branch: "Rupnagar",
         joined: "03 Mar 2023",
         contact: "+880 18•• ••• 2044",
         status: "Active",
@@ -603,7 +603,7 @@ export const modules: Record<string, ModuleDefinition> = {
         id: "STF-017",
         name: "Maliha Khan",
         role: "Cashier",
-        branch: "Dhanmondi",
+        branch: "Mirpur 2",
         joined: "18 Aug 2022",
         contact: "+880 16•• ••• 9140",
         status: "On leave",
@@ -647,7 +647,7 @@ export const modules: Record<string, ModuleDefinition> = {
       {
         id: "ATT-29021",
         staff: "Rafi Hasan",
-        branch: "Banani",
+        branch: "Rupnagar",
         date: "29 Jul 2026",
         checkIn: "08:51",
         hours: "8h 24m",
@@ -656,7 +656,7 @@ export const modules: Record<string, ModuleDefinition> = {
       {
         id: "ATT-29017",
         staff: "Maliha Khan",
-        branch: "Dhanmondi",
+        branch: "Mirpur 2",
         date: "29 Jul 2026",
         checkIn: "—",
         hours: "—",
@@ -701,7 +701,7 @@ export const modules: Record<string, ModuleDefinition> = {
       {
         id: "PAY-0726-021",
         staff: "Rafi Hasan",
-        branch: "Banani",
+        branch: "Rupnagar",
         base: "৳68,000",
         deductions: "৳1,200",
         net: "৳66,800",
@@ -710,7 +710,7 @@ export const modules: Record<string, ModuleDefinition> = {
       {
         id: "PAY-0726-017",
         staff: "Maliha Khan",
-        branch: "Dhanmondi",
+        branch: "Mirpur 2",
         base: "৳36,000",
         deductions: "৳0",
         net: "৳36,000",
@@ -811,7 +811,7 @@ export const modules: Record<string, ModuleDefinition> = {
         actor: "Rafi Hasan",
         action: "Adjusted stock",
         resource: "SH-SHL-0097",
-        location: "Banani",
+        location: "Rupnagar",
         status: "Success",
       },
       {

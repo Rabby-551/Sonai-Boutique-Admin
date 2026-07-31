@@ -1,66 +1,101 @@
 export type Role = "owner" | "manager" | "cashier" | "support";
-export type Permission =
-  | "dashboard.view"
-  | "catalog.view"
-  | "catalog.manage"
-  | "inventory.manage"
-  | "orders.manage"
-  | "customers.manage"
-  | "complaints.manage"
-  | "procurement.manage"
-  | "reports.view"
-  | "staff.manage"
-  | "payroll.manage"
-  | "settings.manage"
-  | "roles.manage"
-  | "audit.view";
 
-const rolePermissions: Record<Role, readonly Permission[]> = {
-  owner: [
-    "dashboard.view",
-    "catalog.view",
-    "catalog.manage",
-    "inventory.manage",
-    "orders.manage",
-    "customers.manage",
-    "complaints.manage",
-    "procurement.manage",
-    "reports.view",
-    "staff.manage",
-    "payroll.manage",
-    "settings.manage",
-    "roles.manage",
-    "audit.view",
-  ],
-  manager: [
-    "dashboard.view",
-    "catalog.view",
-    "catalog.manage",
-    "inventory.manage",
-    "orders.manage",
-    "customers.manage",
-    "complaints.manage",
-    "procurement.manage",
-    "reports.view",
-    "staff.manage",
-    "audit.view",
-  ],
+export const allPermissions = [
+  "dashboard.view",
+  "catalog.view",
+  "catalog.manage",
+  "website.view",
+  "website.manage",
+  "inventory.view",
+  "inventory.adjust",
+  "inventory.transfer",
+  "inventory.count",
+  "inventory.approve",
+  "orders.view",
+  "orders.create",
+  "orders.fulfill",
+  "orders.cancel",
+  "orders.refund",
+  "orders.note",
+  "customers.view",
+  "customers.manage",
+  "loyalty.adjust",
+  "loyalty.configure",
+  "complaints.view",
+  "complaints.create",
+  "complaints.manage",
+  "procurement.view",
+  "procurement.create",
+  "procurement.approve",
+  "procurement.receive",
+  "campaigns.view",
+  "campaigns.manage",
+  "reports.view",
+  "reports.export",
+  "staff.view",
+  "staff.manage",
+  "attendance.view",
+  "attendance.manage",
+  "attendance.approve",
+  "payroll.view",
+  "payroll.manage",
+  "payroll.approve",
+  "users.view",
+  "users.manage",
+  "roles.view",
+  "roles.manage",
+  "audit.view",
+  "settings.view",
+  "settings.manage",
+] as const;
+
+export type Permission = (typeof allPermissions)[number];
+
+export const defaultRolePermissions: Record<Role, readonly Permission[]> = {
+  owner: allPermissions,
+  manager: allPermissions.filter(
+    (permission) =>
+      ![
+        "loyalty.configure",
+        "payroll.approve",
+        "users.manage",
+        "roles.manage",
+        "settings.manage",
+      ].includes(permission),
+  ),
   cashier: [
     "dashboard.view",
     "catalog.view",
-    "inventory.manage",
-    "orders.manage",
+    "inventory.view",
+    "inventory.count",
+    "orders.view",
+    "orders.create",
+    "orders.fulfill",
+    "orders.note",
+    "customers.view",
     "customers.manage",
+    "complaints.view",
+    "complaints.create",
+    "campaigns.view",
+    "staff.view",
+    "attendance.view",
   ],
   support: [
     "catalog.view",
-    "orders.manage",
+    "orders.view",
+    "orders.note",
+    "customers.view",
     "customers.manage",
+    "complaints.view",
+    "complaints.create",
     "complaints.manage",
+    "campaigns.view",
+    "staff.view",
+    "attendance.view",
   ],
 };
 
-/** UI capability helper. Server actions must independently call requirePermission. */
+/** UI capability helper. Server actions use the persisted role profile independently. */
 export function can(role: Role, permission: Permission): boolean {
-  return rolePermissions[role].includes(permission);
+  return defaultRolePermissions[role].includes(permission);
 }

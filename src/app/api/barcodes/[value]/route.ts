@@ -1,9 +1,24 @@
 import bwipjs from "bwip-js";
+import {
+  checkRateLimit,
+  rateLimitHeaders,
+  requestRateLimitKey,
+} from "@/lib/security/rate-limit";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ value: string }> },
 ) {
+  const rateLimit = checkRateLimit(requestRateLimitKey(request, "barcode"), {
+    limit: 120,
+    windowMs: 60_000,
+  });
+  if (!rateLimit.allowed) {
+    return new Response("Too many requests", {
+      status: 429,
+      headers: rateLimitHeaders(rateLimit),
+    });
+  }
   const { value } = await params;
   const safe = decodeURIComponent(value)
     .replace(/[^A-Za-z0-9._-]/g, "")
@@ -21,6 +36,7 @@ export async function GET(
     headers: {
       "content-type": "image/png",
       "cache-control": "public, max-age=3600",
+      ...rateLimitHeaders(rateLimit),
     },
   });
 }

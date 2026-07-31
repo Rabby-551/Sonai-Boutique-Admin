@@ -94,12 +94,12 @@ export class MockDashboardRepository implements DashboardRepository {
           share: 42,
         },
         {
-          channel: "Banani",
+          channel: "Rupnagar",
           revenueMinor: Math.round(revenueMinor * 0.31),
           share: 31,
         },
         {
-          channel: "Dhanmondi",
+          channel: "Mirpur 2",
           revenueMinor: Math.round(revenueMinor * 0.27),
           share: 27,
         },

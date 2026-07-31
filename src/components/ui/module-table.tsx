@@ -26,8 +26,8 @@ export function ModuleTable({ module }: { module: ModuleDefinition }) {
         </select>
         <select className="select" aria-label="Filter location">
           <option>All locations</option>
-          <option>Banani</option>
-          <option>Dhanmondi</option>
+          <option>Rupnagar</option>
+          <option>Mirpur 2</option>
           <option>Online</option>
         </select>
       </div>

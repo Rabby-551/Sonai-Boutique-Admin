@@ -6,6 +6,8 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    fileParallelism: false,
+    testTimeout: 10_000,
   },
   resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
 });

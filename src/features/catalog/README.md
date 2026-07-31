@@ -6,7 +6,7 @@ Catalog owns product, variant, image-metadata, category, CSV-import, and barcode
 
 Small App Router pages call permission-gated queries. Client forms submit to Server Actions, which validate `FormData` with Zod, enforce `catalog.manage`, call `CatalogRepository`, and revalidate affected routes. Components never import fixtures or access the future backend directly.
 
-`repository-factory.ts` selects `FileCatalogRepository` or `HttpCatalogRepository`. The file adapter initializes `.mock-data/catalog.json` from deterministic fixtures and commits each store replacement atomically. Optimistic `version` values prevent silent overwrites. SKU and barcode uniqueness is enforced both inside a product and across the store.
+`repository-factory.ts` selects `FileCatalogRepository` or `HttpCatalogRepository`. The file adapter uses the catalog section of `.mock-data/shonai.json`; a legacy `.mock-data/catalog.json` is migrated without deletion. Unified transactions replace the store atomically. Optimistic `version` values prevent silent overwrites. SKU and barcode uniqueness is enforced both inside a product and across the store.
 
 ## Mock and API boundaries
 

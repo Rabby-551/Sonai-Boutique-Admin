@@ -1,13 +1,17 @@
 export function StatusBadge({ status }: { status: string }) {
   const normalized = status.toLowerCase();
   const tone =
-    /active|paid|delivered|resolved|received|present|healthy|approved/.test(
+    /active|paid|delivered|resolved|received|present|healthy|approved|ready|passed|completed|matched|strong|frozen/.test(
       normalized,
     )
       ? "success"
-      : /low|pending|draft|transit|leave|scheduled|partial/.test(normalized)
+      : /low|medium|pending|draft|transit|leave|scheduled|partial|review|attention|paused|sandbox|identity|controlled/.test(
+            normalized,
+          )
         ? "warning"
-        : /out|cancel|overdue|rejected|absent|critical/.test(normalized)
+        : /out|cancel|overdue|rejected|absent|critical|blocked|failed|mismatch|missing|duplicate|legal|external/.test(
+              normalized,
+            )
           ? "danger"
           : "";
   return <span className={`badge ${tone}`}>{status.replaceAll("_", " ")}</span>;
