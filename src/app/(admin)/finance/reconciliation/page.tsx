@@ -3,9 +3,14 @@ import { PageHeader } from "@/components/ui/page-header";
 import { MockDesignNotice } from "@/features/optimization/components/mock-design-notice";
 import { ReconciliationRuns } from "@/features/optimization/components/reconciliation-runs";
 import { getFinanceWorkspace } from "@/features/optimization/server/queries";
+import { PosReconciliationSummary } from "@/features/pos/components/pos-reconciliation-summary";
+import { getPosReconciliationSummary } from "@/features/pos/server/queries";
 
 export default async function ReconciliationPage() {
-  const workspace = await getFinanceWorkspace();
+  const [workspace, posRows] = await Promise.all([
+    getFinanceWorkspace(),
+    getPosReconciliationSummary(),
+  ]);
   return (
     <div className="stack">
       <PageHeader
@@ -23,6 +28,7 @@ export default async function ReconciliationPage() {
         accounting entry is changed.
       </MockDesignNotice>
       <ReconciliationRuns runs={workspace.reconciliationRuns} />
+      <PosReconciliationSummary rows={posRows} />
     </div>
   );
 }

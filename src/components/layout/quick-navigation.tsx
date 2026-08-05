@@ -5,14 +5,16 @@ import { Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Role } from "@/lib/auth/permissions";
 import { navigationForRole } from "@/lib/navigation";
+import { useAdminLocale } from "@/components/i18n/admin-locale-provider";
 
 export function QuickNavigation({ role }: { role: Role }) {
+  const { locale, dictionary } = useAdminLocale();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [query, setQuery] = useState("");
   const items = useMemo(
-    () => navigationForRole(role).flatMap((group) => group.items),
-    [role],
+    () => navigationForRole(role, locale).flatMap((group) => group.items),
+    [locale, role],
   );
   const results = items.filter((item) => {
     const haystack = [item.label, item.description, ...item.keywords]
@@ -46,7 +48,7 @@ export function QuickNavigation({ role }: { role: Role }) {
         ref={triggerRef}
       >
         <Search aria-hidden size={17} />
-        <span>Quick navigation</span>
+        <span>{dictionary.shell.quickNavigation}</span>
         <kbd>Ctrl K</kbd>
       </button>
       <dialog
@@ -59,25 +61,27 @@ export function QuickNavigation({ role }: { role: Role }) {
         <div className="quick-navigation-panel">
           <div className="quick-navigation-heading">
             <div>
-              <span className="eyebrow">Go to</span>
-              <h2 id="quick-navigation-title">Quick navigation</h2>
+              <span className="eyebrow">{dictionary.shell.goTo}</span>
+              <h2 id="quick-navigation-title">
+                {dictionary.shell.quickNavigation}
+              </h2>
             </div>
             <button
               className="topbar-icon-button"
               onClick={close}
-              aria-label="Close quick navigation"
+              aria-label={dictionary.shell.closeQuickNavigation}
             >
               <X aria-hidden size={18} />
             </button>
           </div>
           <label className="quick-navigation-input">
             <Search aria-hidden size={18} />
-            <span className="sr-only">Search admin pages</span>
+            <span className="sr-only">{dictionary.shell.searchAdminPages}</span>
             <input
               autoFocus
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search pages and workflows"
+              placeholder={dictionary.shell.searchPlaceholder}
             />
           </label>
           <div className="quick-navigation-results" aria-live="polite">
@@ -97,7 +101,7 @@ export function QuickNavigation({ role }: { role: Role }) {
                 </Link>
               ))
             ) : (
-              <p className="empty-search">No matching admin pages.</p>
+              <p className="empty-search">{dictionary.shell.noMatchingPages}</p>
             )}
           </div>
         </div>

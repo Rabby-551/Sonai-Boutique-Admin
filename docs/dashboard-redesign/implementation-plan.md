@@ -1,12 +1,14 @@
-# Dashboard redesign implementation plan
+# Premium dashboard implementation plan
 
-1. Record governance, baseline, route inventory and specifications.
-2. Add Motion and semantic style foundations.
-3. Rebuild responsive shell, grouped permission-aware navigation, active state and route search.
-4. Complete the representative `/dashboard`, `/products`, order detail, product form and `/reports` slice.
-5. Propagate list/table patterns across commerce, inventory, relationships, procurement, campaigns, workforce and governance.
-6. Propagate detail/form patterns across all transactional routes.
-7. Complete analytical, platform, optimization, configuration and review routes.
-8. Add focused component, E2E and visual coverage; verify responsive, accessibility, reduced-motion and performance behavior.
+The responsive shell and first dashboard redesign are complete. This follow-up expands `/dashboard` without rebuilding the shell or changing transactional workflows.
 
-Each phase preserves URLs, data boundaries and permissions, runs the relevant checks and records exact changed files and results in `.codex/memory.md`.
+1. Lock the current heading/banner baseline and reconcile discovery documents.
+2. Expand query, panel, metric and availability contracts behind the dashboard repository.
+3. Deliver deterministic full mock panels and truthful partial Supabase adapters.
+4. Upgrade filters, six KPIs, multi-series revenue, attention and sales targets.
+5. Add fulfillment, channels and the privacy-safe Bangladesh district map.
+6. Add merchandise, inventory, customer and campaign intelligence.
+7. Add advanced recent orders and activity timeline.
+8. Complete English/Bangla copy, responsive/reduced-motion states, tests and release verification.
+
+Each wave preserves the locked hero, URLs, permissions, typed mock/live boundary and unrelated working-tree changes. Unsupported live calculations render `unavailable`; they never fall back to fictional values.

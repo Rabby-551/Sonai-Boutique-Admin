@@ -38,36 +38,44 @@
 }
 
 .brand {
-  min-height: 56px;
-  gap: 12px;
-  padding: 0 8px 16px;
+  min-height: 72px;
+  gap: 10px;
+  padding: 0 4px 18px;
 }
 .brand-mark {
-  flex: 0 0 40px;
-  width: 40px;
-  height: 40px;
+  flex: 0 0 60px;
+  width: 60px;
+  height: 60px;
   padding: 2px;
   object-fit: contain;
-  background: rgb(255 253 248 / 96%);
-  border: 1px solid rgb(181 138 71 / 55%);
+  background: #fffdf8;
   border-radius: 50%;
-  box-shadow: 0 6px 18px rgb(22 5 10 / 22%);
 }
 .brand-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
 }
-.brand strong {
+.brand-wordmark {
+  display: block;
+  width: 128px;
+  height: 42px;
+  object-fit: contain;
+}
+.brand-copy small {
+  display: block;
+  margin-top: -4px;
   color: #fffaf0;
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 10px;
   font-weight: 600;
-}
-.brand small {
-  display: block;
-  margin-top: 3px;
-  font-size: 9px;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 .primary-nav {
   flex: 1;
@@ -214,6 +222,52 @@
   min-height: 40px;
   height: 40px;
   background: var(--surface);
+}
+
+.admin-locale-toggle {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: center;
+  width: 88px;
+  height: 40px;
+  padding: 3px;
+  color: var(--foreground-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.admin-locale-option {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  height: 32px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+.admin-locale-option[lang="bn"] {
+  font-family: "Hind Siliguri", sans-serif;
+  font-size: 11px;
+}
+.admin-locale-thumb {
+  position: absolute;
+  inset-block: 3px;
+  inset-inline-start: 3px;
+  width: 40px;
+  background: var(--primary);
+  border-radius: 999px;
+  box-shadow: 0 3px 10px rgb(69 16 30 / 18%);
+  transition: transform var(--motion-fast) var(--ease-out);
+}
+.admin-locale-toggle.is-bn .admin-locale-thumb {
+  transform: translateX(42px);
+}
+.admin-locale-toggle.is-en .admin-locale-option[lang="en"],
+.admin-locale-toggle.is-bn .admin-locale-option[lang="bn"] {
+  color: #fff;
 }
 
 .navigation-search-trigger {
@@ -475,6 +529,9 @@
   }
   .topbar-actions {
     gap: 6px;
+  }
+  .branch-control {
+    display: none;
   }
   .branch-select {
     width: 118px;

@@ -4,6 +4,7 @@ import "@/styles/tokens.css";
 import "@/styles/shell.css";
 import "@/styles/components.css";
 import "@/styles/motion.css";
+import "@/styles/premium-dashboard.css";
 import { MotionProvider } from "@/components/motion/motion-provider";
 
 export const metadata: Metadata = {

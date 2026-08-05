@@ -29,6 +29,15 @@ describe("admin navigation", () => {
     expect(labels).toContain("Complaints");
     expect(labels).not.toContain("Payroll");
     expect(labels).not.toContain("Settings");
+    expect(labels).not.toContain("Point of sale");
+  });
+
+  it("shows the register to cashiers without exposing POS configuration", () => {
+    const labels = navigationForRole("cashier").flatMap((group) =>
+      group.items.map((item) => item.label),
+    );
+    expect(labels).toContain("Point of sale");
+    expect(labels).not.toContain("POS settings");
   });
 
   it("keeps all approved navigation groups available to owners", () => {

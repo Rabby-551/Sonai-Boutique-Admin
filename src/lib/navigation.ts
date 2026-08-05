@@ -20,6 +20,7 @@ import {
   Settings,
   ShieldCheck,
   ShoppingBag,
+  ShoppingCart,
   Sparkles,
   Tags,
   Truck,
@@ -31,6 +32,11 @@ import {
 } from "lucide-react";
 import type { Permission, Role } from "@/lib/auth/permissions";
 import { can } from "@/lib/auth/permissions";
+import {
+  navigationGroupLabelsBn,
+  navigationItemLabelsBn,
+  type AdminLocale,
+} from "@/lib/i18n/admin-locale";
 
 export interface NavigationItem {
   id: string;
@@ -80,6 +86,20 @@ export const navigation: NavigationGroup[] = [
     id: "commerce",
     label: "Commerce",
     items: [
+      item({
+        label: "Point of sale",
+        href: "/pos",
+        icon: ShoppingCart,
+        permission: "pos.sell",
+        keywords: ["register", "cashier", "receipt", "returns", "exchange"],
+      }),
+      item({
+        label: "POS settings",
+        href: "/settings/pos",
+        icon: Settings,
+        permission: "pos.configure",
+        keywords: ["registers", "banks", "mfs", "payment providers"],
+      }),
       item({
         label: "Products",
         href: "/products",
@@ -317,17 +337,36 @@ export function isNavigationItemActive(item: NavigationItem, pathname: string) {
     : pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-export function navigationForRole(role: Role) {
+export function navigationForRole(role: Role, locale: AdminLocale = "en") {
   return navigation
     .map((group) => ({
       ...group,
-      items: group.items.filter((entry) => can(role, entry.permission)),
+      label:
+        locale === "bn"
+          ? (navigationGroupLabelsBn[group.id] ?? group.label)
+          : group.label,
+      items: group.items
+        .filter((entry) => can(role, entry.permission))
+        .map((entry) => {
+          if (locale === "en") return entry;
+          const label = navigationItemLabelsBn[entry.id] ?? entry.label;
+          return {
+            ...entry,
+            label,
+            description: `${label} খুলুন`,
+            keywords: [...entry.keywords, label],
+          };
+        }),
     }))
     .filter((group) => group.items.length > 0);
 }
 
-export function findNavigationItem(pathname: string, role?: Role) {
-  const items = (role ? navigationForRole(role) : navigation).flatMap(
+export function findNavigationItem(
+  pathname: string,
+  role?: Role,
+  locale: AdminLocale = "en",
+) {
+  const items = (role ? navigationForRole(role, locale) : navigation).flatMap(
     (group) => group.items,
   );
   return items

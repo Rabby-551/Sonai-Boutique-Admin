@@ -1,15 +1,28 @@
 import { expect, test } from "@playwright/test";
 
-test("dashboard filters are URL-backed and accessible", async ({ page }) => {
+test("dashboard filters are URL-backed and accessible", async ({
+  page,
+}, testInfo) => {
   await page.goto("/dashboard");
-  await page.getByLabel("Location", { exact: true }).selectOption("online");
-  await page.getByLabel("Date range", { exact: true }).selectOption("7d");
-  await page.getByRole("button", { name: "Update dashboard" }).click();
+  const filters =
+    testInfo.project.name === "mobile"
+      ? page.getByRole("dialog")
+      : page.locator(".premium-filter-desktop");
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Open filters" }).click();
+  }
+  await filters
+    .getByRole("combobox", { name: "Location", exact: true })
+    .selectOption("online");
+  await filters
+    .getByRole("combobox", { name: "Date range", exact: true })
+    .selectOption("7d");
+  await filters.getByRole("button", { name: "Apply filters" }).click();
   await expect(page).toHaveURL(
     /branch=online.*range=7d|range=7d.*branch=online/,
   );
   await expect(
-    page.getByText("Seven-day revenue across online.", { exact: true }),
+    page.getByText("2 active filters", { exact: true }),
   ).toBeVisible();
 });
 

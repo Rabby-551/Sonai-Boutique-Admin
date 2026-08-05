@@ -1,7 +1,12 @@
 import { initialCatalogStore } from "@/features/catalog/data/fixtures";
 import type { CatalogStore } from "@/features/catalog/schemas/catalog";
 import { defaultRolePermissions, type Role } from "@/lib/auth/permissions";
-import type { ShonaiStore, ShonaiStoreV2, ShonaiStoreV3 } from "./schema";
+import type {
+  ShonaiStore,
+  ShonaiStoreV2,
+  ShonaiStoreV3,
+  ShonaiStoreV4,
+} from "./schema";
 
 const migratedAt = "2026-07-30T00:00:00.000Z";
 
@@ -259,7 +264,7 @@ export function createShonaiStore(
     processedCommands: movements.map((movement) => movement.commandId),
     orderSequences: { "260730": 2 },
   };
-  return migrateShonaiStoreV3(version3);
+  return migrateShonaiStoreV4(migrateShonaiStoreV3(version3));
 }
 
 /** Migrates Phase 3 data without rewriting historical customer snapshots. */
@@ -340,7 +345,7 @@ const staffSeed = [
 ] as const;
 
 /** Adds Phase 5 administration data without rewriting earlier operational history. */
-export function migrateShonaiStoreV3(legacy: ShonaiStoreV3): ShonaiStore {
+export function migrateShonaiStoreV3(legacy: ShonaiStoreV3): ShonaiStoreV4 {
   const staff: ShonaiStore["staff"] = staffSeed.map(
     ([role, name, phone, grade, branchIds], index) => ({
       id: `stf-${role}-01`,
@@ -462,4 +467,131 @@ export function migrateShonaiStoreV3(legacy: ShonaiStoreV3): ShonaiStore {
       updatedBy: "system",
     },
   };
+}
+
+/** Adds the POS ledger and auditable demo register configuration without resetting prior data. */
+export function migrateShonaiStoreV4(legacy: ShonaiStoreV4): ShonaiStore {
+  const migrated = structuredClone(legacy) as unknown as ShonaiStore;
+  const occurredAt = "2026-08-01T00:00:00.000Z";
+  migrated.schemaVersion = 5;
+  migrated.posRegisters = [
+    {
+      id: "reg-rupnagar-01",
+      locationId: "rupnagar",
+      code: "RUP-01",
+      name: "Rupnagar Counter 1",
+      active: true,
+      version: 1,
+    },
+    {
+      id: "reg-mirpur-01",
+      locationId: "mirpur-shopping-center",
+      code: "MIR-01",
+      name: "Mirpur 2 Counter 1",
+      active: true,
+      version: 1,
+    },
+  ];
+  migrated.registerShifts = [];
+  migrated.paymentProviders = [
+    ["bank-city", "card", "CITY", "City Bank", 1],
+    ["bank-dbbl", "card", "DBBL", "Dutch-Bangla Bank", 2],
+    ["bank-ucb", "card", "UCB", "United Commercial Bank", 3],
+    ["mfs-bkash", "mfs", "BKASH", "bKash", 1],
+    ["mfs-nagad", "mfs", "NAGAD", "Nagad", 2],
+    ["mfs-rocket", "mfs", "ROCKET", "Rocket", 3],
+    ["mfs-upay", "mfs", "UPAY", "Upay", 4],
+  ].map(([id, category, code, name, sortOrder]) => ({
+    id: String(id),
+    category: category as "card" | "mfs",
+    code: String(code),
+    name: String(name),
+    active: true,
+    sortOrder: Number(sortOrder),
+    version: 1,
+  }));
+  migrated.posSales = [];
+  migrated.posReturns = [];
+  migrated.posExchanges = [];
+  migrated.posApprovals = [];
+  migrated.posSettings = {
+    allowNoReceiptReturns: true,
+    receiptFooter: "Thank you for shopping with Sonai Boutique.",
+    version: 1,
+    updatedAt: occurredAt,
+    updatedBy: "system",
+  };
+  migrated.posReceiptSequences = {};
+
+  const branchBalances = migrated.balances.filter((balance) =>
+    migrated.locations.some(
+      (location) =>
+        location.id === balance.locationId && location.kind === "branch",
+    ),
+  );
+  if (branchBalances.every((balance) => balance.onHand === 0)) {
+    for (const online of migrated.balances.filter(
+      (balance) => balance.locationId === "loc-online" && balance.onHand > 0,
+    )) {
+      const destination = migrated.balances.find(
+        (balance) =>
+          balance.variantId === online.variantId &&
+          balance.locationId === "rupnagar",
+      );
+      if (!destination) continue;
+      const quantity = Math.min(online.onHand, 3);
+      online.onHand -= quantity;
+      online.version += 1;
+      destination.onHand += quantity;
+      destination.version += 1;
+      migrated.movements.push(
+        {
+          id: `mov-pos-seed-out-${online.variantId}`,
+          variantId: online.variantId,
+          locationId: online.locationId,
+          type: "transfer_out",
+          onHandDelta: -quantity,
+          reservedDelta: 0,
+          reason: "POS v5 demonstration stock allocation.",
+          referenceType: "migration",
+          referenceId: "pos-v5",
+          actorId: "system",
+          commandId: `pos-v5-out-${online.variantId}`,
+          occurredAt,
+        },
+        {
+          id: `mov-pos-seed-in-${online.variantId}`,
+          variantId: online.variantId,
+          locationId: destination.locationId,
+          type: "transfer_in",
+          onHandDelta: quantity,
+          reservedDelta: 0,
+          reason: "POS v5 demonstration stock allocation.",
+          referenceType: "migration",
+          referenceId: "pos-v5",
+          actorId: "system",
+          commandId: `pos-v5-in-${online.variantId}`,
+          occurredAt,
+        },
+      );
+      migrated.processedCommands.push(
+        `pos-v5-out-${online.variantId}`,
+        `pos-v5-in-${online.variantId}`,
+      );
+    }
+  }
+  migrated.auditEvents.push({
+    id: "aud-migration-v5",
+    module: "system",
+    action: "store_migrated",
+    entityType: "store",
+    entityId: "sonai",
+    actorId: "system",
+    branchId: null,
+    summary:
+      "Unified mock store migrated from schema version 4 to 5 with POS records.",
+    metadata: { fromVersion: 4, toVersion: 5 },
+    occurredAt,
+  });
+  return migrated;
 }

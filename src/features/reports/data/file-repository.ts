@@ -11,6 +11,7 @@ export class FileReportRepository implements ReportRepository {
     if (query.type === "campaigns") return this.campaigns(store);
     if (query.type === "procurement") return this.procurement(store, query);
     if (query.type === "payroll") return this.payroll(store, query);
+    if (query.type === "pos_payments") return this.posPayments(store, query);
     return this.orders(store, query, query.type === "profit");
   }
   private orders(
@@ -279,6 +280,101 @@ export class FileReportRepository implements ReportRepository {
         { key: "month", label: "Month", format: "date" },
         { key: "location", label: "Location", format: "text" },
         { key: "status", label: "Status", format: "text" },
+        { key: "net", label: "Net", format: "money" },
+      ],
+      rows,
+    };
+  }
+  private posPayments(store: ShonaiStore, query: ReportQuery): ReportResult {
+    const entries = [
+      ...store.posSales.flatMap((sale) =>
+        sale.tenders.map((tender) => ({
+          sale,
+          tender,
+          receipt: sale.receiptNumber,
+        })),
+      ),
+      ...store.posReturns
+        .filter((item) => item.status === "completed")
+        .flatMap((item) =>
+          item.refundTenders.map((tender) => ({
+            sale:
+              store.posSales.find((sale) => sale.id === item.saleId) ?? null,
+            tender,
+            receipt: item.receiptNumber ?? item.id,
+            locationId: item.locationId,
+            shiftId: item.shiftId,
+          })),
+        ),
+    ].filter((entry) => {
+      const locationId =
+        entry.sale?.locationId ??
+        ("locationId" in entry ? entry.locationId : "");
+      const registerId = entry.sale?.registerId ?? "";
+      const cashierId = entry.sale?.cashierId ?? "";
+      return (
+        (!query.from || entry.tender.recordedAt.slice(0, 10) >= query.from) &&
+        (!query.to || entry.tender.recordedAt.slice(0, 10) <= query.to) &&
+        (!query.locationId ||
+          query.locationId === "all" ||
+          locationId === query.locationId) &&
+        (!query.registerId || registerId === query.registerId) &&
+        (!query.cashierId || cashierId === query.cashierId) &&
+        (!query.providerId || entry.tender.providerId === query.providerId) &&
+        (query.paymentCategory === "all" ||
+          entry.tender.kind === query.paymentCategory)
+      );
+    });
+    const rows = entries.map((entry) => {
+      const sale = entry.sale;
+      const provider = store.paymentProviders.find(
+        (item) => item.id === entry.tender.providerId,
+      );
+      const gross =
+        entry.tender.direction === "payment" ? entry.tender.amountMinor : 0;
+      const refund =
+        entry.tender.direction === "refund" ? entry.tender.amountMinor : 0;
+      return {
+        receipt: entry.receipt,
+        date: entry.tender.recordedAt.slice(0, 10),
+        location:
+          sale?.locationId ??
+          ("locationId" in entry ? entry.locationId : "Unknown"),
+        register:
+          store.posRegisters.find((item) => item.id === sale?.registerId)
+            ?.code ??
+          sale?.registerId ??
+          "Return desk",
+        cashier: sale?.cashierId ?? "Manager refund",
+        category: entry.tender.kind,
+        provider:
+          provider?.name ?? (entry.tender.kind === "cash" ? "Cash" : "Unknown"),
+        gross,
+        refund,
+        net: gross - refund,
+      };
+    });
+    const gross = rows.reduce((sum, row) => sum + row.gross, 0);
+    const refunds = rows.reduce((sum, row) => sum + row.refund, 0);
+    return {
+      title: "POS payment-channel report",
+      description:
+        "Store, register, cashier, bank and MFS tender totals from completed POS activity.",
+      metrics: [
+        { label: "Gross tenders", value: gross, format: "money" },
+        { label: "Refunds", value: refunds, format: "money" },
+        { label: "Net received", value: gross - refunds, format: "money" },
+      ],
+      columns: [
+        { key: "receipt", label: "Receipt", format: "text" },
+        { key: "date", label: "Date", format: "date" },
+        { key: "location", label: "Store", format: "text" },
+        { key: "register", label: "Register", format: "text" },
+        { key: "cashier", label: "Cashier", format: "text" },
+        { key: "category", label: "Channel", format: "text" },
+        { key: "provider", label: "Provider", format: "text" },
+        { key: "gross", label: "Gross", format: "money" },
+        { key: "refund", label: "Refund", format: "money" },
         { key: "net", label: "Net", format: "money" },
       ],
       rows,

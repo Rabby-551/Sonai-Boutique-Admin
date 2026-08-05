@@ -8,7 +8,7 @@ export default defineConfig({
     command:
       "npm run test:e2e:prepare && npm run build && npm run start -- --hostname 127.0.0.1 --port 3100",
     url: "http://127.0.0.1:3100/dashboard",
-    reuseExistingServer: false,
+    reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "true",
     timeout: 900_000,
     env: {
       ...process.env,

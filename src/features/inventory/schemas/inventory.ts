@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-export const locationIdSchema = z.enum([
-  "rupnagar",
-  "mirpur-shopping-center",
-  "loc-online",
-]);
+export const locationIdSchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(80)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use a stable location slug.");
 export const stockMovementTypeSchema = z.enum([
   "migration_opening",
   "receipt",

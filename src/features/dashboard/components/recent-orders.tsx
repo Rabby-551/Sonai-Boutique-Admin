@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { TableShell } from "@/components/ui/table-shell";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useAdminLocale } from "@/components/i18n/admin-locale-provider";
 import { formatMoney } from "@/lib/formatting";
+import { localizeAdminTerm } from "@/lib/i18n/admin-locale";
 import type { DashboardSummary } from "../schemas/dashboard-schema";
 
 export function RecentOrders({
@@ -9,40 +13,51 @@ export function RecentOrders({
 }: {
   orders: DashboardSummary["recentOrders"];
 }) {
+  const { locale, dictionary } = useAdminLocale();
+  const copy = dictionary.dashboard;
   return (
     <TableShell
       actions={
         <Link className="button secondary" href="/orders">
-          View all orders
+          {copy.viewAllOrders}
         </Link>
       }
       className="recent-orders-card"
-      eyebrow="Recent activity"
-      title="Recent orders"
+      eyebrow={copy.recentActivity}
+      title={copy.recentOrders}
     >
       {orders.length ? (
         <div className="table-scroll responsive-record-table">
           <table>
             <thead>
               <tr>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Channel</th>
-                <th>Total</th>
-                <th>Payment</th>
-                <th>Status</th>
+                <th>{copy.order}</th>
+                <th>{copy.customer}</th>
+                <th>{copy.channel}</th>
+                <th>{copy.total}</th>
+                <th>{copy.payment}</th>
+                <th>{copy.status}</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td data-label="Order">{order.id}</td>
-                  <td data-label="Customer">{order.customer}</td>
-                  <td data-label="Channel">{order.channel}</td>
-                  <td data-label="Total">{formatMoney(order.totalMinor)}</td>
-                  <td data-label="Payment">{order.payment}</td>
-                  <td data-label="Status">
-                    <StatusBadge status={order.status} />
+                  <td data-label={copy.order}>{order.id}</td>
+                  <td data-label={copy.customer}>{order.customer}</td>
+                  <td data-label={copy.channel}>
+                    {localizeAdminTerm(order.channel, locale)}
+                  </td>
+                  <td data-label={copy.total}>
+                    {formatMoney(order.totalMinor, locale)}
+                  </td>
+                  <td data-label={copy.payment}>
+                    {localizeAdminTerm(order.payment, locale)}
+                  </td>
+                  <td data-label={copy.status}>
+                    <StatusBadge
+                      label={localizeAdminTerm(order.status, locale)}
+                      status={order.status}
+                    />
                   </td>
                 </tr>
               ))}
@@ -50,7 +65,7 @@ export function RecentOrders({
           </table>
         </div>
       ) : (
-        <div className="empty">No orders in this filtered period.</div>
+        <div className="empty">{copy.noOrders}</div>
       )}
     </TableShell>
   );

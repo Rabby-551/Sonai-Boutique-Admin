@@ -1,4 +1,10 @@
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({
+  status,
+  label = status,
+}: {
+  status: string;
+  label?: string;
+}) {
   const normalized = status.toLowerCase();
   const tone =
     /active|paid|delivered|resolved|received|present|healthy|approved|ready|passed|completed|matched|strong|frozen/.test(
@@ -14,5 +20,5 @@ export function StatusBadge({ status }: { status: string }) {
             )
           ? "danger"
           : "";
-  return <span className={`badge ${tone}`}>{status.replaceAll("_", " ")}</span>;
+  return <span className={`badge ${tone}`}>{label.replaceAll("_", " ")}</span>;
 }

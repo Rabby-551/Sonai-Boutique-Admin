@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap");
+
 @font-face {
   font-family: "Sonai Sans";
   src: url("/fonts/manrope-400.ttf") format("truetype");
@@ -114,6 +116,19 @@ body {
   font-family: var(--font-ui);
   font-feature-settings: "kern", "liga", "tnum";
   text-rendering: optimizeLegibility;
+}
+
+.app-shell.locale-bn {
+  --font-ui: "Hind Siliguri", sans-serif;
+  --font-display: "Hind Siliguri", sans-serif;
+  font-family: "Hind Siliguri", sans-serif;
+}
+
+.app-shell.locale-bn button,
+.app-shell.locale-bn input,
+.app-shell.locale-bn select,
+.app-shell.locale-bn textarea {
+  font-family: inherit;
 }
 
 h1,

@@ -7,6 +7,7 @@ import { reportQuerySchema } from "@/features/reports/schemas/reports";
 import { listLocations } from "@/features/inventory/server/queries";
 import { can } from "@/lib/auth/permissions";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getPosRepository } from "@/features/pos/data/repository-factory";
 export default async function ReportsPage({
   searchParams,
 }: {
@@ -18,10 +19,12 @@ export default async function ReportsPage({
       Object.entries(raw).filter(([, value]) => typeof value === "string"),
     ),
   );
-  const [report, locations, user] = await Promise.all([
+  const [report, locations, user, registers, providers] = await Promise.all([
     runReport(query),
     listLocations(),
     getCurrentUser(),
+    getPosRepository().listRegisters(),
+    getPosRepository().listProviders(),
   ]);
   const exportUrl = `/api/reports/export?${new URLSearchParams(Object.entries(query).filter(([, value]) => value != null) as [string, string][]).toString()}`;
   return (
@@ -38,7 +41,12 @@ export default async function ReportsPage({
           ) : undefined
         }
       />
-      <ReportFilters defaults={query} locations={[...locations]} />
+      <ReportFilters
+        defaults={query}
+        locations={[...locations]}
+        providers={[...providers]}
+        registers={[...registers]}
+      />
       <ReportMetrics metrics={report.metrics} />
       <ReportTable report={report} />
     </div>

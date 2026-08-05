@@ -1,168 +1,379 @@
 import "server-only";
 
 import { createSonaiSupabaseServerClient } from "@/lib/supabase/server";
+import type { DashboardQuery } from "../schemas/dashboard-schema";
 import {
-  dashboardSchema,
-  type DashboardQuery,
-} from "../schemas/dashboard-schema";
-import type { DashboardRepository } from "./repository";
+  averageOrderValue,
+  deliverySuccess,
+  resolveDateWindow,
+} from "../utils/dashboard-metrics";
+import type {
+  ActivityGroup,
+  DashboardRepository,
+  GrowthGroup,
+  OperationsGroup,
+  OverviewGroup,
+  SalesGroup,
+} from "./repository";
 
 type Row = Record<string, unknown>;
 const rows = (value: unknown): Row[] =>
   Array.isArray(value) ? (value as Row[]) : [];
-const numeric = (value: unknown) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-const minor = (value: unknown) => Math.round(numeric(value) * 100);
+const number = (value: unknown) =>
+  Number.isFinite(Number(value)) ? Number(value) : 0;
+const minor = (value: unknown) => Math.round(number(value) * 100);
+const updatedAt = () => new Date().toISOString();
+const ready = <T>(data: T) => ({
+  status: "ready" as const,
+  source: "supabase" as const,
+  updatedAt: updatedAt(),
+  data,
+});
+const empty = <T>(data: T, message: string) => ({
+  status: "empty" as const,
+  source: "supabase" as const,
+  updatedAt: updatedAt(),
+  data,
+  message,
+});
+const unavailable = (
+  reason: "missing_contract" | "missing_source" | "insufficient_data",
+  message: string,
+) => ({
+  status: "unavailable" as const,
+  source: "supabase" as const,
+  updatedAt: updatedAt(),
+  data: null,
+  reason,
+  message,
+});
 
-function rangeStart(range: DashboardQuery["range"]) {
-  const days = range === "7d" ? 7 : range === "90d" ? 90 : 30;
-  return new Date(Date.now() - days * 86_400_000).toISOString();
+interface LiveData {
+  orders: Row[];
+  variants: Row[];
 }
 
-/** Live dashboard summary built from the storefront's orders and inventory. */
 export class SupabaseDashboardRepository implements DashboardRepository {
-  async getSummary(input: DashboardQuery) {
+  private cache?: Promise<LiveData>;
+
+  private load(query: DashboardQuery) {
+    if (!this.cache) this.cache = this.fetch(query);
+    return this.cache;
+  }
+
+  private async fetch(query: DashboardQuery): Promise<LiveData> {
     const supabase = await createSonaiSupabaseServerClient();
     if (!supabase) throw new Error("SONAI_COMMERCE_NOT_CONFIGURED");
-
-    const [ordersResult, inventoryResult] = await Promise.all([
+    const window = resolveDateWindow(query);
+    const [orderResult, variantResult] = await Promise.all([
       supabase
         .from("orders")
         .select(
-          "id,order_number,contact_name,total,payment_method,status,created_at",
+          "id,order_number,contact_name,total,payment_method,status,created_at,updated_at",
         )
-        .gte("created_at", rangeStart(input.range))
+        .gte("created_at", window.start.toISOString())
+        .lte("created_at", window.end.toISOString())
         .order("created_at", { ascending: false }),
       supabase
         .from("product_variants")
         .select(
-          "id,price,inventory(quantity_on_hand,quantity_reserved,low_stock_threshold)",
+          "id,inventory(quantity_on_hand,quantity_reserved,low_stock_threshold)",
         ),
     ]);
-    if (ordersResult.error) throw new Error(ordersResult.error.message);
-    if (inventoryResult.error) throw new Error(inventoryResult.error.message);
+    if (orderResult.error) throw new Error(orderResult.error.message);
+    if (variantResult.error) throw new Error(variantResult.error.message);
+    const branchOnly =
+      query.branch === "rupnagar" ||
+      query.branch === "mirpur-2" ||
+      query.channel === "branch" ||
+      query.channel === "pos";
+    return {
+      orders: branchOnly ? [] : rows(orderResult.data),
+      variants: rows(variantResult.data),
+    };
+  }
 
-    const isBranchOnly =
-      input.branch === "rupnagar" ||
-      input.branch === "mirpur-2" ||
-      input.channel === "branch";
-    const orderRows = isBranchOnly ? [] : rows(ordersResult.data);
-    const inventoryRows = rows(inventoryResult.data);
-    const revenueOrders = orderRows.filter(
+  async getOverview(query: DashboardQuery): Promise<OverviewGroup> {
+    const data = await this.load(query);
+    const eligible = data.orders.filter(
       (order) =>
-        !["cancelled", "payment_failed", "refunded"].includes(
+        !["draft", "payment_failed", "cancelled"].includes(
           String(order.status),
         ),
     );
-    const revenueMinor = revenueOrders.reduce(
-      (sum, order) => sum + minor(order.total),
-      0,
-    );
-    const inventoryMinor = inventoryRows.reduce((sum, variant) => {
-      const inventoryValue = Array.isArray(variant.inventory)
+    const revenue = eligible
+      .filter((order) => String(order.status) !== "refunded")
+      .reduce((sum, order) => sum + minor(order.total), 0);
+    const delivered = data.orders.filter(
+      (order) => String(order.status) === "delivered",
+    ).length;
+    const returned = data.orders.filter(
+      (order) => String(order.status) === "returned",
+    ).length;
+    const cancelled = data.orders.filter(
+      (order) => String(order.status) === "cancelled",
+    ).length;
+    const metric = (
+      id: "revenue" | "orders" | "averageOrderValue" | "deliverySuccess",
+      value: number | null,
+      format: "money" | "count" | "percent",
+      note: string,
+    ) => ({
+      id,
+      value,
+      format,
+      comparisonPercent: null,
+      trend: "unavailable" as const,
+      state: "ready" as const,
+      note,
+    });
+    return {
+      overview: ready({
+        mappedOrderCount: data.orders.length,
+        metrics: [
+          metric(
+            "revenue",
+            revenue,
+            "money",
+            "Live net order revenue; discounts/refunds depend on order totals",
+          ),
+          metric(
+            "orders",
+            eligible.length,
+            "count",
+            "Eligible live placed orders",
+          ),
+          {
+            id: "grossProfit",
+            value: null,
+            format: "money",
+            comparisonPercent: null,
+            trend: "unavailable",
+            state: "unavailable",
+            note: "Variant-level snapshotted COGS is not available",
+          },
+          {
+            id: "inventoryValue",
+            value: null,
+            format: "money",
+            comparisonPercent: null,
+            trend: "unavailable",
+            state: "unavailable",
+            note: "Unit cost is not available in the current inventory source",
+          },
+          metric(
+            "averageOrderValue",
+            averageOrderValue(revenue, eligible.length),
+            "money",
+            "Net revenue per eligible order",
+          ),
+          metric(
+            "deliverySuccess",
+            deliverySuccess(delivered, returned, cancelled),
+            "percent",
+            "Delivered share of terminal outcomes",
+          ),
+        ],
+      }),
+    };
+  }
+
+  async getSales(query: DashboardQuery): Promise<SalesGroup> {
+    const data = await this.load(query);
+    const buckets = new Map<string, { revenueMinor: number; orders: number }>();
+    for (const order of data.orders) {
+      if (
+        ["draft", "payment_failed", "cancelled", "refunded"].includes(
+          String(order.status),
+        )
+      )
+        continue;
+      const label = new Date(String(order.created_at)).toLocaleDateString(
+        "en-BD",
+        { month: "short", day: "numeric", timeZone: "Asia/Dhaka" },
+      );
+      const bucket = buckets.get(label) ?? { revenueMinor: 0, orders: 0 };
+      bucket.revenueMinor += minor(order.total);
+      bucket.orders += 1;
+      buckets.set(label, bucket);
+    }
+    const points = [...buckets].map(([label, value]) => ({
+      label,
+      ...value,
+      profitMinor: null,
+      previousRevenueMinor: null,
+    }));
+    const revenue = points.reduce((sum, point) => sum + point.revenueMinor, 0);
+    return {
+      revenue: points.length
+        ? ready(points)
+        : empty(points, "No eligible website revenue in this period."),
+      targets: unavailable(
+        "missing_source",
+        "Targets are not stored in the current commerce source.",
+      ),
+      channels: ready([
+        {
+          id: "website",
+          revenueMinor: revenue,
+          orders: data.orders.length,
+          averageOrderMinor: averageOrderValue(revenue, data.orders.length),
+          share: revenue ? 100 : 0,
+          growthPercent: 0,
+        },
+      ]),
+      geography: unavailable(
+        "missing_contract",
+        "District-level order aggregates are not available. Delivery addresses are never inferred.",
+      ),
+    };
+  }
+
+  async getOperations(query: DashboardQuery): Promise<OperationsGroup> {
+    const data = await this.load(query);
+    const statusCount = (status: string) =>
+      data.orders.filter((order) => String(order.status) === status).length;
+    const lowStock = data.variants.filter((variant) => {
+      const raw = Array.isArray(variant.inventory)
         ? variant.inventory[0]
         : variant.inventory;
-      const inventory = (inventoryValue ?? {}) as Row;
-      return sum + minor(variant.price) * numeric(inventory.quantity_on_hand);
-    }, 0);
-    const lowStock = inventoryRows.filter((variant) => {
-      const inventoryValue = Array.isArray(variant.inventory)
-        ? variant.inventory[0]
-        : variant.inventory;
-      const inventory = (inventoryValue ?? {}) as Row;
+      const inventory = (raw ?? {}) as Row;
       return (
-        numeric(inventory.quantity_on_hand) -
-          numeric(inventory.quantity_reserved) <=
-        numeric(inventory.low_stock_threshold)
+        number(inventory.quantity_on_hand) -
+          number(inventory.quantity_reserved) <=
+        number(inventory.low_stock_threshold)
       );
     }).length;
-    const waiting = orderRows.filter((order) =>
-      ["draft", "pending_payment", "confirmed"].includes(String(order.status)),
-    ).length;
-    const statusCount = (status: string) =>
-      orderRows.filter((order) => String(order.status) === status).length;
-
-    const dayBuckets = Array.from({ length: 7 }, (_, index) => {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      start.setDate(start.getDate() - (6 - index));
-      const end = new Date(start);
-      end.setDate(end.getDate() + 1);
+    const total = Math.max(1, data.orders.length);
+    const stage = (
+      id:
+        | "confirmed"
+        | "packed"
+        | "shipped"
+        | "delivered"
+        | "returned"
+        | "cancelled",
+      status: string,
+    ) => {
+      const count = statusCount(status);
       return {
-        label: start.toLocaleDateString("en-BD", { weekday: "short" }),
-        revenueMinor: revenueOrders
-          .filter((order) => {
-            const created = new Date(String(order.created_at));
-            return created >= start && created < end;
-          })
-          .reduce((sum, order) => sum + minor(order.total), 0),
+        id,
+        count,
+        percentage: (count / total) * 100,
+        conversionPercent: null,
+        averageMinutes: null,
+        bottleneck: false,
       };
-    });
-
-    return dashboardSchema.parse({
-      revenueMinor,
-      orders: orderRows.length,
-      profitMinor: 0,
-      inventoryMinor,
-      metrics: [
+    };
+    return {
+      alerts: ready([
         {
-          label: "Revenue",
-          valueMinor: revenueMinor,
-          comparison: "Live storefront orders in this period",
-        },
-        {
-          label: "Gross profit",
-          valueMinor: 0,
-          comparison: "Awaiting variant-level COGS allocation",
-        },
-      ],
-      trend: dayBuckets,
-      alerts: [
-        {
-          id: "live-stock",
+          id: "stock",
           title: `${lowStock} low-stock variants`,
-          detail: "Review website availability and replenish stock",
-          severity: lowStock > 0 ? "critical" : "info",
+          detail: "Review availability and replenish stock",
+          ageLabel: "Live",
+          severity: lowStock ? "critical" : "info",
+          actionLabel: "Review stock",
           href: "/inventory?stock=critical",
         },
         {
-          id: "live-orders",
-          title: `${waiting} orders need attention`,
-          detail: "Confirm payment and begin fulfilment",
-          severity: waiting > 0 ? "warning" : "info",
-          href: "/orders?status=placed",
+          id: "orders",
+          title: `${statusCount("confirmed")} confirmed orders`,
+          detail: "Begin fulfilment for waiting orders",
+          ageLabel: "Live",
+          severity: statusCount("confirmed") ? "warning" : "info",
+          actionLabel: "Open orders",
+          href: "/orders?status=confirmed",
         },
-        {
-          id: "live-content",
-          title: "Storefront connection active",
-          detail: "Catalog, orders and inventory share one source of truth",
-          severity: "info",
-          href: "/products",
-        },
-      ],
-      recentOrders: orderRows.slice(0, 8).map((order) => ({
+      ]),
+      fulfillment: ready([
+        stage("confirmed", "confirmed"),
+        stage("packed", "processing"),
+        stage("shipped", "shipped"),
+        stage("delivered", "delivered"),
+        stage("returned", "returned"),
+        stage("cancelled", "cancelled"),
+      ]),
+      inventory: unavailable(
+        "missing_contract",
+        "Inventory ageing, unit cost, turnover, and transfer history are not present in the current source.",
+      ),
+    };
+  }
+
+  async getGrowth(_query: DashboardQuery): Promise<GrowthGroup> {
+    void _query;
+    return {
+      merchandise: unavailable(
+        "missing_contract",
+        "Margin, returns, and historical product aggregates are not available.",
+      ),
+      customers: unavailable(
+        "missing_contract",
+        "Customer cohort and loyalty aggregates are not available.",
+      ),
+      campaigns: unavailable(
+        "missing_source",
+        "Campaign attribution and cost data are not connected.",
+      ),
+    };
+  }
+
+  async getActivity(query: DashboardQuery): Promise<ActivityGroup> {
+    const data = await this.load(query);
+    const search = query.orderSearch.toLowerCase();
+    const filtered = data.orders.filter((order) => {
+      const matches =
+        !search ||
+        `${order.order_number ?? order.id} ${order.contact_name ?? ""}`
+          .toLowerCase()
+          .includes(search);
+      return (
+        matches &&
+        (query.orderStatus === "all" ||
+          String(order.status) === query.orderStatus)
+      );
+    });
+    const totalPages = Math.ceil(filtered.length / query.orderPageSize);
+    const page = Math.min(query.orderPage, Math.max(1, totalPages));
+    const items = filtered
+      .slice((page - 1) * query.orderPageSize, page * query.orderPageSize)
+      .map((order) => ({
         id: String(order.order_number ?? order.id),
         customer: String(order.contact_name ?? "Guest customer"),
         channel: "Website",
+        location: "Online",
         totalMinor: minor(order.total),
         payment: String(order.payment_method ?? "pending").toUpperCase(),
-        status: String(order.status ?? "draft").replaceAll("_", " "),
-      })),
-      fulfillment: {
-        confirmed: statusCount("confirmed"),
-        packed: statusCount("processing"),
-        shipped: statusCount("shipped"),
-        delivered: statusCount("delivered"),
-      },
-      channelRevenue: [
-        { channel: "Online", revenueMinor, share: revenueMinor > 0 ? 100 : 0 },
-        { channel: "Branch", revenueMinor: 0, share: 0 },
-      ],
-      summary: isBranchOnly
-        ? "Branch sales are not yet present in the shared storefront dataset."
-        : `Live ${input.range} website performance from Sonai commerce.`,
-    });
+        fulfillment: String(order.status ?? "confirmed"),
+        status: String(order.status ?? "confirmed"),
+        updatedAt: new Date(
+          String(order.updated_at ?? order.created_at),
+        ).toISOString(),
+      }));
+    return {
+      orders: items.length
+        ? ready({
+            items,
+            page,
+            pageSize: query.orderPageSize,
+            totalItems: filtered.length,
+            totalPages,
+          })
+        : empty(
+            {
+              items,
+              page: 1,
+              pageSize: query.orderPageSize,
+              totalItems: 0,
+              totalPages: 0,
+            },
+            "No orders match these filters.",
+          ),
+      activity: unavailable(
+        "missing_source",
+        "A cross-module activity audit stream is not connected.",
+      ),
+    };
   }
 }

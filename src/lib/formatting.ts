@@ -1,6 +1,6 @@
 /** Formats integer poisha without allowing floating-point money in domain models. */
-export function formatMoney(minor: number): string {
-  return new Intl.NumberFormat("en-BD", {
+export function formatMoney(minor: number, locale: "en" | "bn" = "en"): string {
+  return new Intl.NumberFormat(locale === "bn" ? "bn-BD" : "en-BD", {
     style: "currency",
     currency: "BDT",
     maximumFractionDigits: 0,

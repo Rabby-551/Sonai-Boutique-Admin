@@ -79,16 +79,18 @@ test("mobile controls meet the 44 pixel target and reduced motion is honored", a
   );
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/dashboard");
+  await page.getByRole("button", { name: "Open filters" }).click();
+  const filters = page.getByRole("dialog");
   for (const locator of [
-    page.getByRole("button", { name: "Update dashboard" }),
-    page.getByLabel("Location", { exact: true }),
-    page.getByLabel("Date range", { exact: true }),
+    filters.getByRole("button", { name: "Apply filters" }),
+    filters.getByRole("combobox", { name: "Location", exact: true }),
+    filters.getByRole("combobox", { name: "Date range", exact: true }),
   ]) {
     const box = await locator.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
   }
   const duration = await page
-    .getByRole("button", { name: "Update dashboard" })
+    .getByRole("button", { name: "Open filters" })
     .evaluate((element) => getComputedStyle(element).transitionDuration);
   expect(["0s", "0.00001s"]).toContain(duration);
 });

@@ -9,6 +9,7 @@ export const reportQuerySchema = z.object({
       "campaigns",
       "procurement",
       "payroll",
+      "pos_payments",
     ])
     .default("sales"),
   from: z.string().date().optional(),
@@ -17,6 +18,10 @@ export const reportQuerySchema = z.object({
   channel: z
     .enum(["all", "website", "whatsapp", "messenger", "phone", "branch"])
     .default("all"),
+  registerId: z.string().optional(),
+  cashierId: z.string().optional(),
+  providerId: z.string().optional(),
+  paymentCategory: z.enum(["all", "cash", "card", "mfs"]).default("all"),
 });
 
 export const reportRowSchema = z.record(

@@ -38,4 +38,12 @@ describe("role permissions", () => {
     expect(can("cashier", "attendance.view")).toBe(true);
     expect(can("support", "reports.view")).toBe(false);
   });
+  it("keeps POS selling and approval duties separate", () => {
+    expect(can("cashier", "pos.sell")).toBe(true);
+    expect(can("cashier", "pos.shift")).toBe(true);
+    expect(can("cashier", "pos.approve")).toBe(false);
+    expect(can("manager", "pos.approve")).toBe(true);
+    expect(can("manager", "pos.configure")).toBe(true);
+    expect(can("support", "pos.sell")).toBe(false);
+  });
 });

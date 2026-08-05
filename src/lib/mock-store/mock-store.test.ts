@@ -32,11 +32,9 @@ describe("unified mock store", () => {
     const legacyStock = initialCatalogStore.products
       .flatMap((product) => product.variants)
       .reduce((sum, variant) => sum + variant.stock, 0);
-    expect(
-      snapshot.balances
-        .filter((item) => item.locationId === "loc-online")
-        .reduce((sum, item) => sum + item.onHand, 0),
-    ).toBe(legacyStock);
+    expect(snapshot.balances.reduce((sum, item) => sum + item.onHand, 0)).toBe(
+      legacyStock,
+    );
     expect(
       snapshot.movements.some((item) => item.type === "migration_opening"),
     ).toBe(true);
@@ -78,11 +76,13 @@ describe("unified mock store", () => {
       "utf8",
     );
     const migrated = await new ShonaiFileStore(dir).read();
-    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.schemaVersion).toBe(5);
     expect(migrated.customers).toHaveLength(2);
     expect(migrated.orders.every((order) => order.customerId)).toBe(true);
     expect(migrated.loyaltyTransactions).toEqual([]);
     expect(migrated.roleProfiles).toHaveLength(4);
+    expect(migrated.posRegisters).toHaveLength(2);
+    expect(migrated.paymentProviders).toHaveLength(7);
     expect(migrated.auditEvents[0]?.action).toBe("store_migrated");
   });
 
@@ -99,9 +99,20 @@ describe("unified mock store", () => {
     expect(migrated.locations.map((item) => item.id)).toContain(
       "mirpur-shopping-center",
     );
-    expect(await readFile(path.join(dir, "shonai.json"), "utf8")).not.toMatch(
-      /loc-banani|loc-dhanmondi/,
+    const persisted = JSON.parse(
+      await readFile(path.join(dir, "shonai.json"), "utf8"),
+    ) as typeof migrated;
+    const persistedLocationIds = new Set(
+      persisted.locations.map((location) => location.id),
     );
+
+    expect(persistedLocationIds).not.toContain("loc-banani");
+    expect(persistedLocationIds).not.toContain("loc-dhanmondi");
+    expect(
+      persisted.posRegisters.every((register) =>
+        persistedLocationIds.has(register.locationId),
+      ),
+    ).toBe(true);
   });
 
   it("adds newly introduced permissions to system-managed role profiles", async () => {

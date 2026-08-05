@@ -35,6 +35,16 @@ import {
   salaryRecordSchema,
 } from "@/features/workforce/schemas/workforce";
 import { campaignSchema } from "@/features/campaigns/schemas/campaigns";
+import {
+  paymentProviderSchema,
+  posApprovalSchema,
+  posExchangeSchema,
+  posRegisterSchema,
+  posReturnSchema,
+  posSaleSchema,
+  posSettingsSchema,
+  registerShiftSchema,
+} from "@/features/pos/schemas/pos";
 
 export const shonaiStoreV2Schema = z.object({
   schemaVersion: z.literal(2),
@@ -72,7 +82,7 @@ export const shonaiStoreV3Schema = z.object({
   orderSequences: z.record(z.string(), z.number().int().nonnegative()),
 });
 
-export const shonaiStoreSchema = shonaiStoreV3Schema.extend({
+export const shonaiStoreV4Schema = shonaiStoreV3Schema.extend({
   schemaVersion: z.literal(4),
   staff: z.array(staffSchema),
   userAccounts: z.array(userAccountSchema),
@@ -88,6 +98,20 @@ export const shonaiStoreSchema = shonaiStoreV3Schema.extend({
   businessSettings: businessSettingsSchema,
 });
 
+export const shonaiStoreSchema = shonaiStoreV4Schema.extend({
+  schemaVersion: z.literal(5),
+  posRegisters: z.array(posRegisterSchema),
+  registerShifts: z.array(registerShiftSchema),
+  paymentProviders: z.array(paymentProviderSchema),
+  posSales: z.array(posSaleSchema),
+  posReturns: z.array(posReturnSchema),
+  posExchanges: z.array(posExchangeSchema),
+  posApprovals: z.array(posApprovalSchema),
+  posSettings: posSettingsSchema,
+  posReceiptSequences: z.record(z.string(), z.number().int().nonnegative()),
+});
+
 export type ShonaiStore = z.infer<typeof shonaiStoreSchema>;
 export type ShonaiStoreV2 = z.infer<typeof shonaiStoreV2Schema>;
 export type ShonaiStoreV3 = z.infer<typeof shonaiStoreV3Schema>;
+export type ShonaiStoreV4 = z.infer<typeof shonaiStoreV4Schema>;

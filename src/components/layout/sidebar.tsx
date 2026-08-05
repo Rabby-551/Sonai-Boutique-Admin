@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { findNavigationItem, navigationForRole } from "@/lib/navigation";
 import type { Role } from "@/lib/auth/permissions";
+import { useAdminLocale } from "@/components/i18n/admin-locale-provider";
 
 interface SidebarProps {
   role: Role;
@@ -23,32 +24,39 @@ export function Sidebar({
   onToggle,
 }: SidebarProps) {
   const pathname = usePathname();
-  const groups = navigationForRole(role);
-  const current = findNavigationItem(pathname, role);
+  const { locale, dictionary } = useAdminLocale();
+  const groups = navigationForRole(role, locale);
+  const current = findNavigationItem(pathname, role, locale);
 
   return (
     <aside
       className={`sidebar ${mobile ? "mobile-sidebar" : "desktop-sidebar"}`}
-      aria-label="Primary navigation"
+      aria-label={dictionary.shell.primaryNavigation}
     >
       <div className="brand">
         <Image
-          alt="Sonai Boutique"
+          alt={dictionary.shell.brandAlt}
           className="brand-mark"
-          height={44}
+          height={64}
           priority
           src="/assets/sonai/logos/sonai-logo-transparent.png"
-          width={44}
+          width={64}
         />
-        <div className="brand-copy">
-          <strong>Sonai</strong>
-          <small>Boutique operations</small>
+        <div className="brand-copy" aria-hidden="true">
+          <Image
+            alt=""
+            className="brand-wordmark"
+            height={locale === "bn" ? 75 : 47}
+            src={`/assets/sonai/logos/sonai-wordmark-${locale}.png`}
+            width={132}
+          />
+          <small lang={locale}>{dictionary.shell.boutique}</small>
         </div>
         {mobile ? (
           <button
             className="sidebar-icon-button drawer-close"
             onClick={onNavigate}
-            aria-label="Close navigation"
+            aria-label={dictionary.shell.closeNavigation}
           >
             <X aria-hidden size={18} />
           </button>
@@ -89,14 +97,18 @@ export function Sidebar({
         <button
           className="sidebar-collapse"
           onClick={onToggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={
+            collapsed
+              ? dictionary.shell.expandSidebar
+              : dictionary.shell.collapseSidebar
+          }
         >
           {collapsed ? (
             <ChevronRight aria-hidden size={17} />
           ) : (
             <ChevronLeft aria-hidden size={17} />
           )}
-          <span>Collapse sidebar</span>
+          <span>{dictionary.shell.collapseSidebar}</span>
         </button>
       ) : null}
     </aside>

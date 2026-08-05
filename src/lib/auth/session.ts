@@ -66,7 +66,7 @@ export async function getCurrentUser(): Promise<CurrentUser> {
 
   const { data: staffRole, error: roleError } = await supabase
     .from("admin_roles")
-    .select("role")
+    .select("role, branch_id")
     .eq("user_id", userId)
     .maybeSingle();
   const role = liveRoleMap[String(staffRole?.role ?? "")];
@@ -84,7 +84,8 @@ export async function getCurrentUser(): Promise<CurrentUser> {
     id: userId,
     name: email.split("@")[0]?.replaceAll(/[._-]+/g, " ") || "Sonai staff",
     role,
-    branchId: null,
+    branchId:
+      typeof staffRole?.branch_id === "string" ? staffRole.branch_id : null,
   };
 }
 

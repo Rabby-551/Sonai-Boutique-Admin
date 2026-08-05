@@ -2,9 +2,13 @@ import type { ReportQuery } from "../schemas/reports";
 export function ReportFilters({
   defaults,
   locations,
+  registers = [],
+  providers = [],
 }: {
   defaults: ReportQuery;
   locations: { id: string; name: string }[];
+  registers?: { id: string; code: string; name: string }[];
+  providers?: { id: string; name: string }[];
 }) {
   return (
     <form className="filter-panel" method="get">
@@ -23,6 +27,7 @@ export function ReportFilters({
             "campaigns",
             "procurement",
             "payroll",
+            "pos_payments",
           ].map((item) => (
             <option key={item}>{item}</option>
           ))}
@@ -83,6 +88,65 @@ export function ReportFilters({
       <div className="filter-actions">
         <button className="button">Run report</button>
       </div>
+      {defaults.type === "pos_payments" && (
+        <>
+          <div className="field compact">
+            <label htmlFor="report-payment-category">Payment channel</label>
+            <select
+              className="select"
+              defaultValue={defaults.paymentCategory}
+              id="report-payment-category"
+              name="paymentCategory"
+            >
+              <option value="all">All payment channels</option>
+              <option value="cash">Cash</option>
+              <option value="card">Card</option>
+              <option value="mfs">MFS</option>
+            </select>
+          </div>
+          <div className="field compact">
+            <label htmlFor="report-register">Register</label>
+            <select
+              className="select"
+              defaultValue={defaults.registerId ?? ""}
+              id="report-register"
+              name="registerId"
+            >
+              <option value="">All registers</option>
+              {registers.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.code} · {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field compact">
+            <label htmlFor="report-provider">Provider</label>
+            <select
+              className="select"
+              defaultValue={defaults.providerId ?? ""}
+              id="report-provider"
+              name="providerId"
+            >
+              <option value="">All providers</option>
+              {providers.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field compact">
+            <label htmlFor="report-cashier">Cashier ID</label>
+            <input
+              className="input"
+              defaultValue={defaults.cashierId ?? ""}
+              id="report-cashier"
+              name="cashierId"
+            />
+          </div>
+        </>
+      )}
     </form>
   );
 }

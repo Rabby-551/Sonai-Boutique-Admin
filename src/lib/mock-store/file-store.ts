@@ -7,11 +7,13 @@ import {
   createShonaiStore,
   migrateShonaiStoreV2,
   migrateShonaiStoreV3,
+  migrateShonaiStoreV4,
 } from "./fixtures";
 import {
   shonaiStoreSchema,
   shonaiStoreV2Schema,
   shonaiStoreV3Schema,
+  shonaiStoreV4Schema,
   type ShonaiStore,
 } from "./schema";
 import { OperationsError } from "@/lib/operations-error";
@@ -67,8 +69,8 @@ function upgradeCurrentStore(store: ShonaiStore) {
     "loc-online": "Online",
   } as const;
   for (const location of upgraded.locations) {
-    const name = locationNames[location.id];
-    if (location.name !== name) {
+    const name = locationNames[location.id as keyof typeof locationNames];
+    if (name && location.name !== name) {
       location.name = name;
       changed = true;
     }
@@ -163,9 +165,23 @@ export class ShonaiFileStore {
         normalized.schemaVersion === 2
       ) {
         const migrated = shonaiStoreSchema.parse(
-          migrateShonaiStoreV3(
-            migrateShonaiStoreV2(shonaiStoreV2Schema.parse(normalized)),
+          migrateShonaiStoreV4(
+            migrateShonaiStoreV3(
+              migrateShonaiStoreV2(shonaiStoreV2Schema.parse(normalized)),
+            ),
           ),
+        );
+        await this.writeUnlocked(migrated);
+        return migrated;
+      }
+      if (
+        typeof normalized === "object" &&
+        normalized !== null &&
+        "schemaVersion" in normalized &&
+        normalized.schemaVersion === 4
+      ) {
+        const migrated = shonaiStoreSchema.parse(
+          migrateShonaiStoreV4(shonaiStoreV4Schema.parse(normalized)),
         );
         await this.writeUnlocked(migrated);
         return migrated;
@@ -177,7 +193,9 @@ export class ShonaiFileStore {
         normalized.schemaVersion === 3
       ) {
         const migrated = shonaiStoreSchema.parse(
-          migrateShonaiStoreV3(shonaiStoreV3Schema.parse(normalized)),
+          migrateShonaiStoreV4(
+            migrateShonaiStoreV3(shonaiStoreV3Schema.parse(normalized)),
+          ),
         );
         await this.writeUnlocked(migrated);
         return migrated;
